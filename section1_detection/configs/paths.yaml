@@ -1,0 +1,9 @@
+# Edit these two paths for your machine.
+dataset_1_zip: /Users/avnisingh/Downloads/pallet.v1i.yolov8.zip
+dataset_2_zip: /Users/avnisingh/Downloads/PLH-C.1.v1i.yolov8.zip
+
+raw_root: data/raw
+processed_root: data/processed
+manifest_root: data/manifests
+
+seed: 42

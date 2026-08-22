@@ -1,0 +1,12 @@
+.DS_Store
+
+.venv/
+__pycache__/
+.ipynb_checkpoints/
+
+data/raw/
+data/processed/
+
+*.zip
+
+runs/

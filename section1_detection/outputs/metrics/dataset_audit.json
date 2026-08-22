@@ -1,0 +1,108 @@
+{
+  "dataset_1": {
+    "root": "data/raw/dataset_1",
+    "data_yaml": "data/raw/dataset_1/data.yaml",
+    "names": {
+      "0": "hole",
+      "1": "pallet"
+    },
+    "splits": {
+      "train": {
+        "directory": "/Users/avnisingh/delhivery-pallet-pose/data/raw/train/images",
+        "images": 0,
+        "annotations": 0,
+        "class_counts": {},
+        "empty_images": 0,
+        "missing_labels": 0,
+        "malformed_labels": 0,
+        "groups": {}
+      },
+      "val": {
+        "directory": "/Users/avnisingh/delhivery-pallet-pose/data/raw/valid/images",
+        "images": 0,
+        "annotations": 0,
+        "class_counts": {},
+        "empty_images": 0,
+        "missing_labels": 0,
+        "malformed_labels": 0,
+        "groups": {}
+      },
+      "test": {
+        "directory": "/Users/avnisingh/delhivery-pallet-pose/data/raw/test/images",
+        "images": 0,
+        "annotations": 0,
+        "class_counts": {},
+        "empty_images": 0,
+        "missing_labels": 0,
+        "malformed_labels": 0,
+        "groups": {}
+      }
+    },
+    "class_counts": {},
+    "total_images": 0,
+    "total_annotations": 0,
+    "empty_images": 0,
+    "missing_labels": 0,
+    "malformed_labels": 0,
+    "groups": {},
+    "cross_split_groups": {},
+    "num_groups": 0,
+    "num_cross_split_groups": 0
+  },
+  "dataset_2": {
+    "root": "data/raw/dataset_2",
+    "data_yaml": "data/raw/dataset_2/data.yaml",
+    "names": {
+      "0": "front",
+      "1": "hole",
+      "2": "hole_left",
+      "3": "hole_right",
+      "4": "pallet",
+      "5": "pallet_front",
+      "6": "pallet_pocket",
+      "7": "wood"
+    },
+    "splits": {
+      "train": {
+        "directory": "/Users/avnisingh/delhivery-pallet-pose/data/raw/train/images",
+        "images": 0,
+        "annotations": 0,
+        "class_counts": {},
+        "empty_images": 0,
+        "missing_labels": 0,
+        "malformed_labels": 0,
+        "groups": {}
+      },
+      "val": {
+        "directory": "/Users/avnisingh/delhivery-pallet-pose/data/raw/valid/images",
+        "images": 0,
+        "annotations": 0,
+        "class_counts": {},
+        "empty_images": 0,
+        "missing_labels": 0,
+        "malformed_labels": 0,
+        "groups": {}
+      },
+      "test": {
+        "directory": "/Users/avnisingh/delhivery-pallet-pose/data/raw/test/images",
+        "images": 0,
+        "annotations": 0,
+        "class_counts": {},
+        "empty_images": 0,
+        "missing_labels": 0,
+        "malformed_labels": 0,
+        "groups": {}
+      }
+    },
+    "class_counts": {},
+    "total_images": 0,
+    "total_annotations": 0,
+    "empty_images": 0,
+    "missing_labels": 0,
+    "malformed_labels": 0,
+    "groups": {},
+    "cross_split_groups": {},
+    "num_groups": 0,
+    "num_cross_split_groups": 0
+  }
+}
