@@ -1,0 +1,114 @@
+{
+  "evaluation_resolution_px": [
+    640,
+    480
+  ],
+  "reference_camera": {
+    "fx_px": 450.0,
+    "fy_px": 450.0,
+    "cx_px": 320.0,
+    "cy_px": 240.0,
+    "height_m": 1.2,
+    "tilt_deg": 20.0,
+    "status": "synthetic_reference_assumption"
+  },
+  "pallet": {
+    "length_m": 1.2,
+    "width_m": 1.0,
+    "deck_height_m": 0.144
+  },
+  "acceptance": {
+    "translation_m": 0.02,
+    "rotation_deg": 3.0,
+    "operating_envelope_pass_rate": 0.95
+  },
+  "zero_noise": {
+    "translation_m": {
+      "median": 5.258091714810164e-16,
+      "p95": 1.790180836524724e-15,
+      "max": 2.1381281407002093e-15
+    },
+    "rotation_deg": {
+      "median": 2.842170943040401e-14,
+      "p95": 1.1368683772161603e-13,
+      "max": 1.4210854715202004e-13
+    },
+    "pass_rate": 1.0
+  },
+  "landmark_noise": {
+    "0.5": {
+      "translation_m": {
+        "median": 0.011341568802574527,
+        "p95": 0.03746667584059359,
+        "max": 0.08452153615360997
+      },
+      "rotation_deg": {
+        "median": 0.5696191880795283,
+        "p95": 2.842813496674289,
+        "max": 4.909771802456191
+      },
+      "pass_rate": 0.75
+    },
+    "1.0": {
+      "translation_m": {
+        "median": 0.02266439361336376,
+        "p95": 0.07010804089297706,
+        "max": 0.08732577714395173
+      },
+      "rotation_deg": {
+        "median": 1.1267472343942728,
+        "p95": 4.4524530582821225,
+        "max": 7.531986593861063
+      },
+      "pass_rate": 0.43
+    },
+    "2.0": {
+      "translation_m": {
+        "median": 0.055354555574511306,
+        "p95": 0.13857292150600484,
+        "max": 0.28105029142498705
+      },
+      "rotation_deg": {
+        "median": 2.51891609690081,
+        "p95": 11.489436941114358,
+        "max": 25.43871660106447
+      },
+      "pass_rate": 0.19
+    },
+    "3.0": {
+      "translation_m": {
+        "median": 0.0703208770110069,
+        "p95": 0.2336973630237715,
+        "max": 0.33407937886158606
+      },
+      "rotation_deg": {
+        "median": 2.6716220112296867,
+        "p95": 15.304825255985556,
+        "max": 22.2677006539015
+      },
+      "pass_rate": 0.09
+    },
+    "5.0": {
+      "translation_m": {
+        "median": 0.09678524964308902,
+        "p95": 0.2850959954053927,
+        "max": 0.40865248485195543
+      },
+      "rotation_deg": {
+        "median": 4.958089547315666,
+        "p95": 17.54954564816968,
+        "max": 23.259415872736326
+      },
+      "pass_rate": 0.06
+    }
+  },
+  "operating_envelope": {
+    "rows": 36
+  },
+  "height_sensitivity": {
+    "rows": 1200
+  },
+  "tilt_sensitivity": {
+    "rows": 1600
+  }
+}

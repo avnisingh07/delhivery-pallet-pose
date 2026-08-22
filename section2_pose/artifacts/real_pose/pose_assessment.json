@@ -1,0 +1,74 @@
+{
+  "schema_version": "section2.v1",
+  "evaluation_type": "real_image_integration",
+  "ground_truth_available": false,
+  "calibration": {
+    "status": "ASSUMED_REFERENCE",
+    "image_size_px": [
+      640,
+      480
+    ],
+    "fx_px": 450.0,
+    "fy_px": 450.0,
+    "cx_px": 320.0,
+    "cy_px": 240.0,
+    "height_m": 1.2,
+    "tilt_deg": 20.0,
+    "note": "Reference assumptions only; not physical deployment calibration."
+  },
+  "pallet_geometry": {
+    "length_m": 1.2,
+    "width_m": 1.0,
+    "deck_height_m": 0.144,
+    "source": "explicit_nominal_assumption"
+  },
+  "floor_frame": {
+    "origin": "camera_floor_projection",
+    "x_axis": "pallet_front",
+    "y_axis": "pallet_left",
+    "z_axis": "up",
+    "theta_definition": "pallet +X yaw relative to floor +X"
+  },
+  "section1_geometry_interface": {
+    "source": "pallet_front_segmentation",
+    "G0_definition": "image-left endpoint of lower/front edge",
+    "G1_definition": "image-right endpoint of lower/front edge"
+  },
+  "assessments": [
+    {
+      "instance_id": 0,
+      "detection_confidence": 0.8908923864364624,
+      "G0_px": [
+        395,
+        279
+      ],
+      "G1_px": [
+        497,
+        279
+      ],
+      "pose_status": "UNRELIABLE",
+      "failure_reason": "REPROJECTION_RMS_EXCEEDS_3PX",
+      "pose": {
+        "frame": "floor",
+        "x_m": 1.9788990942165188,
+        "y_m": -0.7934630537617072,
+        "theta_deg": -2.842170943040401e-14,
+        "face_identity": {
+          "front": "VISIBLE_FRONT",
+          "rear": "OPPOSITE_FACE",
+          "left": "AMBIGUOUS",
+          "right": "AMBIGUOUS"
+        }
+      },
+      "reprojection_rms_px": 28.398781961333896,
+      "predicted_G0_px": [
+        366.60121803866605,
+        279.0
+      ],
+      "predicted_G1_px": [
+        525.3987819613338,
+        279.00000000000006
+      ]
+    }
+  ]
+}

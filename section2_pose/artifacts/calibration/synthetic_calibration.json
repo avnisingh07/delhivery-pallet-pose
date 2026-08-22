@@ -1,0 +1,62 @@
+{
+  "type": "synthetic_calibration_only",
+  "note": "Synthetic/reference calibration at 640x480. This validates the calibration procedure, not the physical target camera.",
+  "image_size_px": [
+    640,
+    480
+  ],
+  "ground_truth_K": [
+    [
+      450.0,
+      0.0,
+      320.0
+    ],
+    [
+      0.0,
+      450.0,
+      240.0
+    ],
+    [
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "estimated_K": [
+    [
+      439.9742384587484,
+      0.0,
+      334.85908443536755
+    ],
+    [
+      0.0,
+      440.0316882359478,
+      239.81876099311697
+    ],
+    [
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "ground_truth_distortion": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+  ],
+  "estimated_distortion": [
+    0.07433821845401595,
+    -1.9607788362406622,
+    -0.0028349205739280274,
+    0.012735923773256724,
+    12.533850678474739
+  ],
+  "calibration_rms_px": 0.32458008141204486,
+  "per_point_reprojection_error_px": {
+    "median": 0.22290504723787308,
+    "p95": 0.6474474877119062,
+    "max": 1.0502227544784546
+  }
+}

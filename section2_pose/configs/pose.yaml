@@ -1,0 +1,21 @@
+image:
+  width_px: 640
+  height_px: 480
+camera:
+  fx_px: 450.0
+  fy_px: 450.0
+  cx_px: 320.0
+  cy_px: 240.0
+  height_m: 1.20
+  tilt_deg: 20.0
+  calibration_status: assumed_reference
+pallet:
+  length_m: 1.20
+  width_m: 1.00
+  deck_height_m: 0.144
+  source: explicit_nominal_assumption
+quality:
+  max_reprojection_rms_px: 3.0
+  min_front_edge_px: 20.0
+  max_translation_uncertainty_m: 0.02
+  max_rotation_uncertainty_deg: 3.0

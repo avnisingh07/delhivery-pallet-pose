@@ -10,3 +10,8 @@ data/processed/
 *.zip
 
 runs/
+
+# OS / Python generated files
+.DS_Store
+__pycache__/
+*.py[cod]
