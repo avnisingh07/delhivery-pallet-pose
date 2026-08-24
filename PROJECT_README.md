@@ -1,132 +1,370 @@
 # Delhivery Pallet Pose Estimation & Load Compliance
 
-An end-to-end computer-vision prototype for pallet detection, front-edge geometry extraction, metric pose estimation, conservative single-view SOP assessment, and deployment planning. The system makes uncertainty explicit: insufficient visual evidence or a failed pose-quality gate results in `MANUAL_INSPECTION`, never an invented PASS/FAIL result.
+An end-to-end computer-vision prototype for pallet perception, metric pose estimation, conservative load/SOP assessment, and deployment planning. The repository was prepared for the Delhivery AI/ML Engineer (Computer Vision) take-home assignment and is deliberately explicit about what is measured, assumed, unavailable, and unsafe to consume downstream.
 
-## Project description
+> **Current real-image result:** Section 1 produces pallet-front geometry, but the saved Section 2 real-image pose fails its reprojection-quality gate (`28.40 px` versus `3.00 px`). It is therefore `UNRELIABLE`, and the Section 3 overall outcome is correctly `MANUAL_INSPECTION`—not PASS and not FAIL.
 
-The project is organised as four connected stages:
+## Contents
 
-1. detect the pallet and segment its visible front surface;
-2. extract a fixed front-edge interface and estimate a floor-frame pose;
-3. assess visible load/SOP evidence with conservative rules; and
-4. package the pipeline for ONNX/INT8 experimentation and future Jetson validation.
+- [System overview](#system-overview)
+- [Repository layout](#repository-layout)
+- [Quick start](#quick-start)
+- [Section 1 — detection and front geometry](#section-1--detection-and-front-geometry)
+- [Section 2 — pose estimation](#section-2--pose-estimation)
+- [Section 3 — load analysis and SOP assessment](#section-3--load-analysis-and-sop-assessment)
+- [Section 4 — deployment and robustness](#section-4--deployment-and-robustness)
+- [Results and artifacts](#results-and-artifacts)
+- [Limitations and safety behaviour](#limitations-and-safety-behaviour)
+- [Reproducibility](#reproducibility)
 
-## System Architecture
-
-![Pose geometry pipeline](section2_pose/outputs/figures/pose_geometry_pipeline.png)
+## System overview
 
 ```text
-RGB image → pallet detection + front segmentation → G0/G1 front edge
-        → ray/floor pose geometry + quality gate → load/SOP evidence
-        → explicit failure contract + temporal stability gate
+RGB pallet image
+      │
+      ├── Section 1: pallet detector ────────────────► pallet bounding boxes
+      │
+      └── Section 1: pallet_front segmentation ─────► mask → G0/G1 front edge
+                                                              │
+                                                              ▼
+                                              Section 2: ray/floor geometry
+                                                              │
+                                            (x, y, yaw, quality status)
+                                                              │
+                                                              ▼
+                                      Section 3: YOLOE-Seg load evidence + SOP rules
+                                                              │
+                                                              ▼
+                                  Section 4: failure contract + temporal stability gate
 ```
 
-## Key Results
+The key design principle is conservative decision-making. A missing detection, incomplete view, low-quality geometry, or unreliable pose is propagated as an explicit state rather than converted into a plausible numeric result or a positive compliance claim.
 
-| Area | Result | Interpretation |
-|---|---:|---|
-| Pallet detection | 0.968 mAP50 | Held-out box detection performance |
-| Pallet-front segmentation | 0.887 mask mAP50–95 | Held-out geometry segmentation performance |
-| Synthetic pose calibration | 0.325 px RMS | Procedure validation under reference simulation |
-| Saved real-image pose | 28.40 px reprojection RMS | Fails the 3.00 px gate; status is `UNRELIABLE` |
-| Saved SOP assessment | `MANUAL_INSPECTION` | Correctly conservative given unreliable pose and one view |
-| INT8 ONNX size | 10.3 MB | 73.4% smaller than the 38.7 MB FP32 ONNX model |
+## Repository layout
 
-## Section 1 — Detection
+| Path | Purpose |
+|---|---|
+| `data/` | Raw exports, processed single-class YOLO datasets, and split manifests. |
+| `section1_detection/` | Dataset processing, training notebook, trained detector/segmenter, geometry extraction, metrics, and figures. |
+| `section2_pose/` | Floor-plane pose estimator, uncertainty/assessment logic, synthetic evaluation, saved pose artifact, and figures. |
+| `section3_implementation/` | YOLOE-Seg load detector adapter, conservative SOP rules, saved assessment, and figures. |
+| `section4_deployment/` | Benchmarking, ONNX/INT8 export path, failure contract, temporal aggregation, and deployment documentation. |
+| `docs/`, `runs/` | Supplementary artifacts and Ultralytics validation outputs. |
 
-The supplied pallet datasets were converted to deterministic, source-group-aware single-class YOLO splits (seed `42`). The detector recognises `pallet`; the segmentation model recognises `pallet_front`, whose bottom-band extrema become the fixed geometry endpoints `G0` and `G1` for pose estimation.
+## Quick start
 
-| Model / held-out metric | Precision | Recall | mAP50 | mAP50–95 |
+### Prerequisites
+
+- Python 3.10+ recommended
+- A working PyTorch/Ultralytics installation for model inference
+- The packaged Section 1 model weights in `section1_detection/models/`
+- The packaged YOLOE checkpoint `yoloe-11s-seg.pt` for the saved Section 3 workflow
+
+Create an isolated environment and install the common dependencies:
+
+```bash
+python -m venv .venv
+source .venv/bin/activate              # Windows: .venv\Scripts\activate
+pip install --upgrade pip
+pip install -r requirements.txt
+pip install -r section3_implementation/requirements-section3.txt
+pip install -r section4_deployment/requirements-section4.txt
+```
+
+Run commands from the repository root. Some Section 2/3/4 modules rely on package imports, so retain the indicated `PYTHONPATH` when using those commands.
+
+### Regenerate the report figures
+
+The figure scripts use existing artifacts and local model weights. They do not retrain models or alter the estimators/rules.
+
+```bash
+python section1_detection/scripts/generate_section1_figures.py
+PYTHONPATH=. python section2_pose/scripts/generate_section2_figures.py
+python section3_implementation/scripts/generate_section3_figures.py
+```
+
+Generated files are written to:
+
+- `section1_detection/outputs/figures/`
+- `section2_pose/outputs/figures/`
+- `section3_implementation/outputs/figures/`
+
+## Section 1 — detection and front geometry
+
+Section 1 supplies the perception interface used by the rest of the project:
+
+1. a single-class pallet detector; and
+2. a single-class `pallet_front` segmentation model that yields the visible lower/front edge.
+
+### Data
+
+The original exports are documented in [DATASET.md](DATASET.md). Both datasets were converted to single-class YOLO datasets and split deterministically with seed `42` using source-group-aware assignment. The supplied Roboflow split was not used as the final scientific split.
+
+| Dataset | Retained target | Images | Retained annotations |
+|---|---|---:|---:|
+| Dataset 1 — pallet detection | `pallet` | 920 | 10,329 |
+| Dataset 2 — pallet geometry | `pallet_front` | 412 | 278 |
+
+| Dataset | Train | Validation | Held-out test |
+|---|---:|---:|---:|
+| Detection images / instances | 644 / 6,929 | 141 / 1,527 | 135 / 1,873 |
+| Geometry images / instances | 288 / 199 | 61 / 42 | 63 / 37 |
+
+Dataset 1 has 378 derived source groups (264 train, 56 validation, 58 test). Dataset 2 has 412 derived filename groups (288, 61, 63); this reduces augmentation leakage but does **not** prove complete independence of the original photographic scenes.
+
+### Models and held-out metrics
+
+The trained weights are stored in:
+
+- `section1_detection/models/pallet_detector_best.pt`
+- `section1_detection/models/pallet_geometry_best.pt`
+
+The following values are read from the saved training notebook's held-out evaluation:
+
+| Model / metric | Precision | Recall | mAP50 | mAP50–95 |
 |---|---:|---:|---:|---:|
 | Pallet detector (box) | 0.947 | 0.958 | 0.968 | 0.694 |
 | Pallet-front model (box) | 0.947 | 1.000 | 0.981 | 0.898 |
 | Pallet-front model (mask) | 0.947 | 1.000 | 0.981 | 0.887 |
 
-![Dataset overview](section1_detection/outputs/figures/dataset_overview.png)
+### Geometry interface
 
-![Detection examples](section1_detection/outputs/figures/detection_examples.png)
+[`extract_front_edge.py`](section1_detection/scripts/extract_front_edge.py) is the fixed Section 1 geometry definition:
 
-![Detection evaluation summary](section1_detection/outputs/figures/evaluation_summary.png)
+- form a binary `pallet_front` mask;
+- take the bottom 10% of mask pixels;
+- `G0` is the image-left extreme and `G1` the image-right extreme;
+- pass the pixel endpoints to Section 2.
 
-## Section 2 — Pose
+This intentionally simple interface is auditable and avoids introducing a second, competing edge definition.
 
-![Input front geometry](section2_pose/outputs/figures/input_front_geometry.png)
+### Dataset utilities and training
 
-### Methodology
+Dataset preparation and validation scripts are in `section1_detection/scripts/`. The training workflow and saved evaluation outputs are in `section1_detection/notebooks/01_train_section1.ipynb`.
 
-Calibrated camera rays through `G0` and `G1` are intersected with the floor plane. The front-edge midpoint, nominal pallet width, and a right-handed perpendicular recover the pallet centre and yaw; constrained reprojection refinement then quality-gates the candidate pose.
+The notebook trains YOLO11-small models at 640 px:
 
-The geometry uses explicit reference assumptions: a 1.20 m × 1.00 m pallet, 0.144 m deck height, and a 640 × 480 calibration convention. Synthetic evaluation validates the estimator workflow, not a physical warehouse deployment.
+- detection: `yolo11s.pt`, 50 epochs, patience 10;
+- segmentation: `yolo11s-seg.pt`, 75 epochs, patience 15.
 
-| Pose evaluation | Value |
+Training uses seed `42`. Paths in `section1_detection/configs/paths.yaml` are local-machine settings; update them before rebuilding source exports.
+
+## Section 2 — pose estimation
+
+Section 2 turns fixed `G0/G1` image geometry into a floor-frame candidate pose `(x, y, theta)`.
+
+### Method
+
+The method is implemented in [`section2_pose/src/pose_geometry.py`](section2_pose/src/pose_geometry.py):
+
+1. cast calibrated camera rays through `G0` and `G1`;
+2. intersect rays with the floor plane (`Z = 0`);
+3. use the front-edge midpoint and known pallet width to recover the local edge;
+4. recover pallet +X as the right-handed perpendicular to the edge;
+5. translate by half the nominal pallet length to obtain the pallet centre;
+6. refine `(x, y, theta)` with constrained reprojection; and
+7. gate the result on reprojection quality.
+
+The floor frame is: +X pallet front, +Y pallet left, +Z up, with origin at the camera-floor projection. `theta` is pallet +X yaw relative to floor +X.
+
+### Explicit assumptions
+
+The assignment did not provide physical pallet dimensions or deployment calibration. The implementation therefore uses **nominal assumptions**, not measured facts:
+
+| Parameter | Value |
+|---|---:|
+| Pallet length | 1.20 m |
+| Pallet width | 1.00 m |
+| Deck height | 0.144 m |
+| Reference image resolution | 640 × 480 px |
+| Reference intrinsics | fx = fy = 450 px; cx = 320 px; cy = 240 px |
+| Reference camera height / tilt | 1.20 m / 20° |
+| Pose reprojection gate | 3.00 px RMS |
+
+### Evaluation and real-image integration
+
+The controlled pose evaluation is synthetic because physical pose ground truth and a target camera were not available. It validates the estimator procedure under known simulated poses; it is not a physical deployment validation.
+
+| Result | Value |
 |---|---:|
 | Synthetic calibration RMS / P95 / max | 0.325 / 0.647 / 1.050 px |
 | 1 px endpoint-noise P95 translation | 0.070 m |
 | 1 px endpoint-noise P95 rotation | 4.452° |
 | 1 px endpoint-noise pass rate | 43% |
-| Passing synthetic envelope | 1.0 m at tested 0–50° views |
+| Passing synthetic envelope | 1.0 m, viewing angles 0–50° |
+| Tested 2 m+ envelope | No point met the 95% acceptance criterion |
 
-The saved real image has `G0=(395,279)` and `G1=(497,279)`, but reprojection RMS is 28.40 px versus the 3.00 px acceptance gate. Its numeric candidate pose is therefore not consumed downstream.
+The saved real-image integration in `section2_pose/artifacts/real_pose/pose_assessment.json` contains:
 
-![Estimated pose frame](section2_pose/outputs/figures/estimated_pose_frame.png)
+```text
+G0 = (395, 279) px
+G1 = (497, 279) px
+reprojection RMS = 28.40 px
+status = UNRELIABLE
+reason = REPROJECTION_RMS_EXCEEDS_3PX
+```
 
-![Pose evaluation summary](section2_pose/outputs/figures/evaluation_summary.png)
+The numeric candidate pose is deliberately **not** a valid metric result and must not be consumed as such downstream.
 
-## Section 3 — SOP
+### Run the supplied evaluations
 
-The load-analysis layer uses YOLOE-Seg prompts for visible cartons/packages and applies SOP-PAL-03 rules with an evidence-first policy. A rule is PASS only when it is sufficiently observable; unknown is not treated as compliant.
+```bash
+PYTHONPATH=. python section2_pose/evaluation/calibration_synthetic.py
+PYTHONPATH=. python section2_pose/evaluation/synthetic_pose_eval.py --n 100 --envelope-trials 100
+PYTHONPATH=. python section2_pose/evaluation/uncertainty_mc.py
+PYTHONPATH=. python section2_pose/evaluation/plot_results.py
+```
 
-![Assessment summary](section3_implementation/outputs/figures/assessment_summary.png)
+For an image with the expected 640×480 calibration convention:
 
-| Rule | Threshold / expectation | Single-view policy |
+```bash
+PYTHONPATH=. python section2_pose/inference/run_pose.py \
+  --image path/to/image.jpg \
+  --conf 0.25
+```
+
+Further rationale, alternatives, sensitivities, and acceptance criteria are in [SECTION2_METHOD.md](section2_pose/SECTION2_METHOD.md).
+
+## Section 3 — load analysis and SOP assessment
+
+Section 3 consumes the Section 2 pose interface and applies conservative SOP-PAL-03 evidence rules to a single RGB view.
+
+### Detection approach
+
+[`BoxDetector`](section3_implementation/src/load_analysis/box_detector.py) uses a pretrained YOLOE-Seg model with the prompts:
+
+```text
+cardboard box, carton, package, box
+```
+
+It can return box instances and masks when the model detects them. No Section 3 detector was trained because the supplied datasets are pallet/geometry datasets, not a validated box, damage, or SOP dataset.
+
+### SOP rules
+
+| Rule | Threshold / scope | Observability policy |
 |---|---|---|
-| Overhang | ≤ 3 cm | Visible geometry only |
-| Height | ≤ 1.80 m | Manual until vertical metric geometry is available |
-| Box rotation | ≤ 15° | Visible boxes only |
-| Size ordering | Larger below smaller | Manual; hidden layers are unobservable |
-| Stretch wrap | Complete wrapping | Manual; one view cannot prove completeness |
-| Damage | No visible damage | Partial/manual; no dedicated damage model |
-| Centroid | ≤ 10 cm | Visible geometric proxy, not mass centroid |
-| Pallet damage | No damage | Visible pallet surfaces only |
+| 1. Overhang | ≤ 3 cm | Visible box/pallet geometry only |
+| 2. Height | ≤ 1.80 m | Manual until vertical metric geometry is available |
+| 3. Box rotation | ≤ 15° | Visible box geometry only |
+| 4. Size ordering | Larger below smaller | Manual: hidden layers cannot be established |
+| 5. Stretch wrap | Complete wrapping | Manual: one RGB view cannot prove it |
+| 6. Damage | No visible damage | Partial/manual: no dedicated damage model |
+| 7. Centroid | ≤ 10 cm | Visible geometric proxy only, not mass centroid |
+| 8. Pallet damage | No damage | Visible pallet surfaces only |
 
-For a scalar measurement `x` with uncertainty `σ`: PASS if `x + 2σ ≤ threshold`; FAIL if `x - 2σ > threshold`; otherwise `MANUAL_INSPECTION`. The saved assessment reports no load detections and all rules as `MANUAL_INSPECTION`, which is the intended safe outcome.
+For a scalar measure `x` and uncertainty `sigma`, the decision rule is:
 
-## Section 4 — Deployment
+```text
+PASS   if x + 2σ <= threshold
+FAIL   if x - 2σ > threshold
+MANUAL_INSPECTION otherwise
+```
 
-The deployment boundary exports the Section 1 geometry model to ONNX, evaluates an optional static INT8 conversion, preserves explicit failure states, and proposes a five-frame stability gate for stationary pallets.
+Absence of a visible violation is not converted into PASS when evidence is partial. Rule confidence is an evidence-quality value, not a calibrated probability:
 
-| Apple M2 measurement | Mean latency | P95 latency |
+```text
+C = C_detection × C_geometry × C_observability × C_pose^alpha
+```
+
+### Saved Section 3 result
+
+The saved assessment is [`section3_output.json`](section3_output.json). It reports:
+
+- zero YOLOE load/box detections;
+- all rules 1–8 as `MANUAL_INSPECTION`;
+- overall verdict: `MANUAL_INSPECTION`;
+- primary limitation: the incoming Section 2 pose is `UNRELIABLE`.
+
+This is intentional conservative behaviour, not a compliance failure or success claim.
+
+Run the Section 3 entry point with an image and a Section 2 pose JSON:
+
+```bash
+cd section3_implementation
+python scripts/run_section3.py \
+  --image ../section3_image_sample.jpg \
+  --pose-json ../section2_pose/artifacts/real_pose/pose_assessment.json \
+  --output-json outputs/load/pallet_001.json \
+  --output-vis outputs/load/pallet_001.jpg \
+  --weights ../yoloe-11s-seg.pt
+```
+
+## Section 4 — deployment and robustness
+
+Section 4 adds a reproducible deployment boundary without changing Sections 1–3:
+
+- model and end-to-end latency benchmarks;
+- ONNX export and an optional INT8 sensitivity experiment;
+- explicit failure-state contract;
+- five-frame temporal aggregation for stationary pallets; and
+- a Jetson Orin Nano validation plan.
+
+### Deployment target and measurement policy
+
+The deployment target is a Jetson Orin Nano at 15 W and ≥15 FPS, corresponding to a **66.67 ms/frame** end-to-end budget. Jetson hardware was not available, so no Jetson latency, FPS, memory, power, or thermal result is claimed.
+
+Measured artifacts are from an Apple MacBook Air M2. They are not proxies for Jetson TensorRT throughput.
+
+| Measured M2 result | Mean | P95 |
 |---|---:|---:|
-| Geometry model, PyTorch CPU | 204.11 ms | 298.44 ms |
-| Geometry model, PyTorch MPS | 78.44 ms | 136.01 ms |
+| Section 1 geometry, PyTorch CPU | 204.11 ms | 298.44 ms |
+| Section 1 geometry, PyTorch MPS | 78.44 ms | 136.01 ms |
 | Section 3 end-to-end CPU | 451.88 ms | 515.38 ms |
 | Geometry ONNX FP32, ORT CPU | 309.80 ms | 473.48 ms |
 | Geometry ONNX INT8, ORT CPU | 202.94 ms | 264.81 ms |
 
-| ONNX / INT8 result | FP32 | INT8 |
-|---|---:|---:|
-| Box mAP50 | 0.9806 | 0.9791 |
-| Mask mAP50–95 | 0.8747 | 0.8586 |
-| Model size | 38.7 MB | 10.3 MB |
-| Mean FPS on M2 ORT CPU | 3.23 | 4.93 |
+The optional INT8 experiment reduced ONNX model size from 38.7 MB to 10.3 MB (73.4%) and decreased mean ORT CPU latency. Its held-out geometry-mask mAP50–95 changed from 0.8747 (FP32) to 0.8586 (INT8). Only 15 calibration images were available, so this is a constrained sensitivity experiment, not production-grade INT8 calibration evidence.
 
-The target is Jetson Orin Nano at 15 W and ≥15 FPS (66.67 ms/frame). Jetson hardware was not available, so Jetson latency, throughput, memory, power, thermals, and TensorRT performance remain unmeasured acceptance tests—not estimates derived from Mac results.
+### Failure and temporal behaviour
 
-## Failure Analysis
+The failure contract exposes states such as `NO_DETECTION`, `GEOMETRY_UNRELIABLE`, `POSE_UNRELIABLE`, `TEMPORALLY_UNSTABLE`, and `SOP_UNCERTAIN`; a failure is never encoded as a zero pose. The safe action for uncertainty is `MANUAL_INSPECTION`.
 
-![Estimated pose frame showing the failed quality-gated integration](section2_pose/outputs/figures/estimated_pose_frame.png)
+For a stationary pallet, the temporal module uses a five-frame window, robustly aggregates valid x/y/yaw observations, and rejects windows whose position or rotation jitter exceeds the configured tolerance. It intentionally does not introduce a tracker or Kalman filter.
 
-![SOP evidence](section3_implementation/outputs/figures/sop_evidence.png)
+See [section4_deployment/README.md](section4_deployment/README.md) for benchmark commands, ONNX/INT8 workflow, and the Jetson deployment plan.
 
-The primary observed failure is a pose reprojection RMS of 28.40 px, exceeding the 3 px gate. This correctly propagates from `UNRELIABLE` pose to `MANUAL_INSPECTION` rather than producing a usable-looking metric pose. A single RGB view also cannot establish hidden layers, full stretch-wrap coverage, unseen pallet faces, mass centroid, or reliable damage absence. Explicit states such as `NO_DETECTION`, `GEOMETRY_UNRELIABLE`, `POSE_UNRELIABLE`, and `SOP_UNCERTAIN` prevent those cases from being silently represented as success.
+## Results and artifacts
 
-## Limitations / Future Work
+### Report figures
 
-- Calibrate the target camera and measure actual pallet dimensions.
-- Collect physical pose ground truth to validate real-world accuracy.
-- Build representative annotated data for cartons, damage, wrapping, and loading SOPs.
-- Add multi-view or depth evidence for hidden faces, layers, height, and full-load compliance.
-- Validate ONNX/TensorRT FP16 and INT8 directly on the Jetson at 15 W, including p95 end-to-end latency, memory, power, and thermals.
-- Retain conservative quality gates and manual-inspection fallbacks throughout deployment.
+| Section | Location |
+|---|---|
+| Section 1 dataset, prediction, geometry, and evaluation figures | `section1_detection/outputs/figures/` |
+| Section 2 input, front edge, pose frame, pipeline, and evaluation figures | `section2_pose/outputs/figures/` |
+| Section 3 input, detection evidence, SOP evidence, rules, and assessment figures | `section3_implementation/outputs/figures/` |
+| Section 4 deployment/quantisation figures | `section4_deployment/artifacts/figures/` |
 
-For full reproducibility details and commands, see the existing [root README](README.md), [pose documentation](section2_pose/README.md), and [deployment README](section4_deployment/README.md).
+### Key machine-readable artifacts
+
+| Artifact | Description |
+|---|---|
+| `section1_detection/outputs/metrics/dataset_audit.json` | Dataset audit output. |
+| `section2_pose/artifacts/calibration/synthetic_calibration.json` | Synthetic/reference calibration result. |
+| `section2_pose/artifacts/evaluation/pose_evaluation_summary.json` | Synthetic pose evaluation summary. |
+| `section2_pose/artifacts/real_pose/pose_assessment.json` | Real-image geometry and pose-quality assessment. |
+| `section3_output.json` | Saved Section 3 assessment and rule outcomes. |
+| `section4_deployment/artifacts/section4_measured_results.json` | M2 benchmark and quantisation metrics. |
+| `section4_deployment/artifacts/failure_state_contract.json` | Failure-aware downstream contract. |
+
+## Limitations and safety behaviour
+
+This repository does **not** claim the following:
+
+- physical camera calibration for a Delhivery deployment camera;
+- physical pallet-pose ground truth or measured real-world pose accuracy;
+- compliance verification from hidden faces, hidden layers, or unavailable load evidence;
+- a successful pose for the saved real image;
+- Jetson Orin Nano benchmark, power, thermal, memory, or TensorRT performance; or
+- production-grade INT8 calibration.
+
+Before deployment, collect target-camera calibration data, physical pallet/pose ground truth, representative loading and damage data, multi-view/temporal observations, and target-device benchmarks. Continue to preserve explicit failure states and require manual inspection whenever the perception evidence is insufficient.
+
+## Reproducibility
+
+- Dataset split seed: `42`.
+- Section 1 training configuration: stored in [`01_train_section1.ipynb`](section1_detection/notebooks/01_train_section1.ipynb).
+- Section 2 evaluation code: `section2_pose/evaluation/`.
+- Section 3 SOP configuration: [`section3_implementation/configs/sop.yaml`](section3_implementation/configs/sop.yaml).
+- Section 4 scripts and artifact schemas: `section4_deployment/scripts/` and `section4_deployment/artifacts/`.
+
+AI assistance was used for code scaffolding, debugging, documentation drafting, and visualization preparation. Numerical artifacts in the repository are retained as executed outputs; unavailable physical measurements are explicitly reported as unmeasured rather than estimated.
