@@ -1,0 +1,101 @@
+{
+  "pallet_id": "section3_image_sample",
+  "pose": {
+    "x_m": 1.9788990942165188,
+    "y_m": -0.7934630537617072,
+    "theta_deg": -2.842170943040401e-14,
+    "position_uncertainty_m": 0.0,
+    "orientation_uncertainty_deg": 0.0
+  },
+  "pose_quality": {
+    "status": "UNRELIABLE",
+    "geometry_confidence": 0.0
+  },
+  "sop_checks": [
+    {
+      "rule_id": 1,
+      "name": "overhang",
+      "verdict": "MANUAL_INSPECTION",
+      "confidence": 0.0,
+      "observability": "PARTIAL",
+      "evidence": {},
+      "reason": "Camera metric geometry unavailable."
+    },
+    {
+      "rule_id": 2,
+      "name": "height",
+      "verdict": "MANUAL_INSPECTION",
+      "confidence": 0.0,
+      "observability": "NONE",
+      "evidence": {},
+      "reason": "No load detections."
+    },
+    {
+      "rule_id": 3,
+      "name": "box_rotation",
+      "verdict": "MANUAL_INSPECTION",
+      "confidence": 0.0,
+      "observability": "PARTIAL",
+      "evidence": {},
+      "reason": "Camera metric geometry unavailable."
+    },
+    {
+      "rule_id": 4,
+      "name": "size_ordering",
+      "verdict": "MANUAL_INSPECTION",
+      "confidence": 0.0,
+      "observability": "NONE",
+      "evidence": {},
+      "reason": "Single side view cannot establish the size ordering of hidden boxes/layers."
+    },
+    {
+      "rule_id": 5,
+      "name": "stretch_wrap",
+      "verdict": "MANUAL_INSPECTION",
+      "confidence": 0.0,
+      "observability": "NONE",
+      "evidence": {},
+      "reason": "A single RGB side view cannot establish complete stretch wrapping."
+    },
+    {
+      "rule_id": 6,
+      "name": "damage",
+      "verdict": "MANUAL_INSPECTION",
+      "confidence": 0.2,
+      "observability": "PARTIAL",
+      "evidence": {},
+      "reason": "No dedicated damage model; hidden surfaces and subtle crush damage are unobservable."
+    },
+    {
+      "rule_id": 7,
+      "name": "centroid",
+      "verdict": "MANUAL_INSPECTION",
+      "confidence": 0.0,
+      "observability": "PARTIAL",
+      "evidence": {},
+      "reason": "Camera geometry or box detections unavailable."
+    },
+    {
+      "rule_id": 8,
+      "name": "pallet_damage",
+      "verdict": "MANUAL_INSPECTION",
+      "confidence": 0.2,
+      "observability": "PARTIAL",
+      "evidence": {},
+      "reason": "Only the visible pallet structure can be inspected from one side."
+    }
+  ],
+  "overall_verdict": "MANUAL_INSPECTION",
+  "overall_reason": [
+    "Section 2 pose is UNRELIABLE; metric compliance cannot be established reliably.",
+    "Rule 1 (overhang): Camera metric geometry unavailable.",
+    "Rule 2 (height): No load detections.",
+    "Rule 3 (box_rotation): Camera metric geometry unavailable.",
+    "Rule 4 (size_ordering): Single side view cannot establish the size ordering of hidden boxes/layers.",
+    "Rule 5 (stretch_wrap): A single RGB side view cannot establish complete stretch wrapping.",
+    "Rule 6 (damage): No dedicated damage model; hidden surfaces and subtle crush damage are unobservable.",
+    "Rule 7 (centroid): Camera geometry or box detections unavailable.",
+    "Rule 8 (pallet_damage): Only the visible pallet structure can be inspected from one side."
+  ],
+  "detections": []
+}

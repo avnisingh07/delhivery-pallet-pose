@@ -1,0 +1,2 @@
+model,device,imgsz,iterations,wall_p50_ms,wall_p95_ms,wall_p99_ms,fps_mean,fps_p95_equivalent,target_budget_ms,jetson_status
+section1_detection/models/pallet_geometry_best.pt,Apple M2 MPS,640,100,66.72870798502117,136.00678130169396,228.69126661564326,12.748954751598752,7.352574558630078,66.66666666666667,NOT_MEASURED

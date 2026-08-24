@@ -1,0 +1,29 @@
+{
+  "schema_version": "1.0",
+  "statuses": {
+    "VALID": "Pose and required checks are sufficiently reliable for downstream use.",
+    "UNRELIABLE": "A required perception/pose estimate failed its reliability gate.",
+    "MANUAL_INSPECTION": "Automatic compliance decision is not safe; human review required.",
+    "SYSTEM_ERROR": "Pipeline/inference/input/system failure; result must not be consumed as a valid assessment."
+  },
+  "rules": [
+    "Never encode a missing pose as a valid zero-valued pose.",
+    "Downstream consumers must branch on status and failure_reason.",
+    "UNRELIABLE pose prevents geometry-dependent automatic load verdicts.",
+    "SYSTEM_ERROR is distinct from a valid image with uncertain perception."
+  ],
+  "example": {
+    "status": "MANUAL_INSPECTION",
+    "failure_reason": "POSE_UNRELIABLE",
+    "pose": {
+      "status": "UNRELIABLE",
+      "position_m": null,
+      "orientation_deg": null,
+      "uncertainty": null
+    },
+    "load_compliance": {
+      "status": "NOT_ASSESSABLE"
+    },
+    "confidence": 0.0
+  }
+}

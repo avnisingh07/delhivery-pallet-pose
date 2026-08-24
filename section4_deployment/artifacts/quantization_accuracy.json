@@ -1,0 +1,47 @@
+{
+  "evaluation": {
+    "task": "segment",
+    "dataset": "data/processed/geometry/data.yaml",
+    "split": "test",
+    "same_split_for_both": true,
+    "calibration_note": "INT8 calibration used the available validation images. The dataset contained only 15 validation images, below the >300-image recommendation reported by Ultralytics."
+  },
+  "fp32": {
+    "metrics/precision(B)": 0.9485372296309463,
+    "metrics/recall(B)": 0.9963807339603035,
+    "metrics/mAP50(B)": 0.9805641025641024,
+    "metrics/mAP50-95(B)": 0.8970682752777701,
+    "metrics/precision(M)": 0.9485372296309463,
+    "metrics/recall(M)": 0.9963807339603035,
+    "metrics/mAP50(M)": 0.9805641025641024,
+    "metrics/mAP50-95(M)": 0.8747120786898572,
+    "fitness": 1.7717803539676273
+  },
+  "int8": {
+    "metrics/precision(B)": 0.9227575490241752,
+    "metrics/recall(B)": 1.0,
+    "metrics/mAP50(B)": 0.9791111111111109,
+    "metrics/mAP50-95(B)": 0.8770391818368205,
+    "metrics/precision(M)": 0.9227575490241752,
+    "metrics/recall(M)": 1.0,
+    "metrics/mAP50(M)": 0.9791111111111109,
+    "metrics/mAP50-95(M)": 0.8585765764936817,
+    "fitness": 1.735615758330502
+  },
+  "delta_int8_minus_fp32": {
+    "fitness": -0.03616459563712526,
+    "metrics/mAP50(B)": -0.0014529914529914922,
+    "metrics/mAP50(M)": -0.0014529914529914922,
+    "metrics/mAP50-95(B)": -0.020029093440949608,
+    "metrics/mAP50-95(M)": -0.016135502196175544,
+    "metrics/precision(B)": -0.02577968060677116,
+    "metrics/precision(M)": -0.02577968060677116,
+    "metrics/recall(B)": 0.0036192660396965337,
+    "metrics/recall(M)": 0.0036192660396965337
+  },
+  "interpretation": "Segmentation/localisation metrics are the primary comparison because geometry errors propagate into pose estimation.",
+  "jetson_validation": {
+    "status": "NOT_MEASURED",
+    "reason": "This is an M2/ONNX accuracy experiment. No Jetson Orin Nano hardware was available."
+  }
+}

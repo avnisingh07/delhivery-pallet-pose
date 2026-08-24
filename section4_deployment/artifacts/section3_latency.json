@@ -1,0 +1,50 @@
+{
+  "benchmark": "Existing Section 3 detector + rule engine",
+  "measured_hardware": {
+    "machine": "arm64",
+    "platform": "macOS-14.1.1-arm64-arm-64bit-Mach-O",
+    "python": "3.13.2",
+    "device_argument": "cpu"
+  },
+  "runs": {
+    "warmup": 10,
+    "measured": 50
+  },
+  "latency_ms": {
+    "section3_detector": {
+      "mean": 451.831950803753,
+      "p50": 438.67931253043935,
+      "p95": 515.3053125191944,
+      "p99": 585.2528052020352
+    },
+    "pose_sop_downstream": {
+      "mean": 0.050741652958095074,
+      "p50": 0.050312490202486515,
+      "p95": 0.07612874032929538,
+      "p99": 0.08227515383623539
+    },
+    "end_to_end": {
+      "mean": 451.8826924567111,
+      "p50": 438.72970854863524,
+      "p95": 515.3775687736924,
+      "p99": 585.2989336592145
+    }
+  },
+  "derived": {
+    "end_to_end_mean_fps": 2.2129637109210525,
+    "end_to_end_p95_fps_equivalent": 1.9403250366123528,
+    "target_budget_ms_at_15fps": 66.66666666666667
+  },
+  "last_assessment": {
+    "overall_verdict": "MANUAL_INSPECTION",
+    "pose_status": "UNRELIABLE"
+  },
+  "resource_observation": {
+    "process_rss_mb": 425.625,
+    "note": "Process RSS only; no Jetson GPU memory/power is measured."
+  },
+  "jetson_validation": {
+    "status": "NOT_MEASURED",
+    "reason": "Jetson Orin Nano hardware was not available."
+  }
+}

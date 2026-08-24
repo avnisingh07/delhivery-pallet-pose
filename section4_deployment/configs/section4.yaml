@@ -1,0 +1,26 @@
+
+target:
+  hardware: "Jetson Orin Nano"
+  power_w: 15
+  throughput_fps: 15
+  frame_budget_ms: 66.6667
+
+benchmark:
+  batch: 1
+  warmup_iterations: 20
+  measured_iterations: 100
+  imgsz_geometry: 640
+  imgsz_load: 960
+
+temporal:
+  window: 5
+  max_position_jitter_m: 0.02
+  max_orientation_jitter_deg: 3.0
+
+failure_policy:
+  uncertain_action: "MANUAL_INSPECTION"
+  never_emit_pass_on_pose_failure: true
+
+validation:
+  jetson_benchmark_status: "NOT_MEASURED"
+  note: "Target hardware was unavailable; no Jetson performance is reported."

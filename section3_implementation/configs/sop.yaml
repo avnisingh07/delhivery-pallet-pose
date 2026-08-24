@@ -1,0 +1,20 @@
+sop:
+  overhang_max_m: 0.03
+  max_height_m: 1.80
+  max_box_rotation_deg: 15.0
+  max_centroid_offset_m: 0.10
+
+decision:
+  uncertainty_k: 2.0
+  fail_confidence: 0.85
+
+model:
+  name: yoloe-11s-seg
+  weights: yoloe-11s-seg.pt
+  prompts:
+    - cardboard box
+    - carton
+    - package
+    - box
+  confidence: 0.30
+  imgsz: 960

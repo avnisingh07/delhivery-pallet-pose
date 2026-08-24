@@ -1,0 +1,100 @@
+{
+  "hardware_measurement_policy": "Only Apple MacBook Air M2 measurements are reported. Jetson Orin Nano was unavailable and no Jetson benchmark is claimed.",
+  "target": {
+    "hardware": "Jetson Orin Nano",
+    "power_w": 15,
+    "throughput_fps": 15,
+    "frame_budget_ms": 66.6666666667
+  },
+  "section3_end_to_end_m2_cpu": {
+    "mean_ms": 451.8826924567111,
+    "p50_ms": 438.72970854863524,
+    "p95_ms": 515.3775687736924,
+    "p99_ms": 585.2989336592145,
+    "mean_fps": 2.2129637109210525,
+    "p95_fps_equivalent": 1.9403250366123528,
+    "process_rss_mb": 425.625
+  },
+  "section3_detector_m2_cpu": {
+    "mean_ms": 451.831950803753,
+    "p50_ms": 438.67931253043935,
+    "p95_ms": 515.3053125191944,
+    "p99_ms": 585.2528052020352
+  },
+  "section3_pose_sop_m2_cpu": {
+    "mean_ms": 0.050741652958095074,
+    "p50_ms": 0.050312490202486515,
+    "p95_ms": 0.07612874032929538,
+    "p99_ms": 0.08227515383623539
+  },
+  "geometry_pytorch_m2_cpu": {
+    "mean_ms": 204.11136215203442,
+    "p50_ms": 184.81106247054413,
+    "p95_ms": 298.44334161025466,
+    "p99_ms": 394.4961483508815,
+    "mean_fps": 4.899286298697766
+  },
+  "geometry_pytorch_m2_mps": {
+    "mean_ms": 78.43780290102586,
+    "p50_ms": 66.72870798502117,
+    "p95_ms": 136.00678130169396,
+    "p99_ms": 228.69126661564326,
+    "mean_fps": 12.748954751598752
+  },
+  "geometry_onnx_fp32_m2_ort_cpu": {
+    "mean_ms": 309.7966187715065,
+    "p50_ms": 267.27843744447455,
+    "p95_ms": 473.4772110765332,
+    "p99_ms": 769.6880405116844,
+    "mean_fps": 3.227924190927209,
+    "process_rss_mb": 212.46875
+  },
+  "geometry_onnx_int8_m2_ort_cpu": {
+    "mean_ms": 202.94438960496336,
+    "p50_ms": 181.78047944093123,
+    "p95_ms": 264.81391453999095,
+    "p99_ms": 434.8611426726005,
+    "mean_fps": 4.92745821624597,
+    "process_rss_mb": 220.78125
+  },
+  "quantization_accuracy": {
+    "test_images": 63,
+    "calibration_images": 15,
+    "fp32": {
+      "box_precision": 0.9485372296309463,
+      "box_recall": 0.9963807339603035,
+      "box_map50": 0.9805641025641024,
+      "box_map50_95": 0.8970682752777701,
+      "mask_precision": 0.9485372296309463,
+      "mask_recall": 0.9963807339603035,
+      "mask_map50": 0.9805641025641024,
+      "mask_map50_95": 0.8747120786898572
+    },
+    "int8": {
+      "box_precision": 0.9227575490241752,
+      "box_recall": 1.0,
+      "box_map50": 0.9791111111111109,
+      "box_map50_95": 0.8770391818368205,
+      "mask_precision": 0.9227575490241752,
+      "mask_recall": 1.0,
+      "mask_map50": 0.9791111111111109,
+      "mask_map50_95": 0.8585765764936817
+    },
+    "delta_int8_minus_fp32": {
+      "box_precision": -0.02577968060677116,
+      "box_recall": 0.0036192660396965337,
+      "box_map50": -0.0014529914529914922,
+      "box_map50_95": -0.020029093440949608,
+      "mask_precision": -0.02577968060677116,
+      "mask_recall": 0.0036192660396965337,
+      "mask_map50": -0.0014529914529914922,
+      "mask_map50_95": -0.016135502196175544
+    },
+    "fp32_onnx_size_mb": 38.7,
+    "int8_onnx_size_mb": 10.3,
+    "size_reduction_percent": 73.38501291989664,
+    "mean_latency_reduction_percent": 34.490823,
+    "p50_latency_reduction_percent": 31.979955,
+    "p95_latency_reduction_percent": 44.074425
+  }
+}
